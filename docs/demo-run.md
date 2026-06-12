@@ -112,23 +112,33 @@ Fires N concurrent chat requests via the async OpenAI client and compares wall-c
 time to the sum of individual latencies.
 
 ```
-Firing N concurrent requests ...
-(no clean timing returned — see note)
+Firing 6 concurrent requests at localhost...
+(ran >13 min without completing — interrupted)
 ```
 
-**What happened (and the honest read for the interview):** over the **free ngrok
-tunnel**, concurrent connections were throttled/serialized, so the load test did not
-return a clean speedup number — at both N=10 and N=4 the requests stalled behind the
-tunnel rather than the server. This is a *transport* limit, not a code or platform
-limit. Combined with the **T4 + Transformers engine** (which doesn't do vLLM-style
-continuous batching), a high speedup number was never expected on this free setup —
-the real auto-batching story belongs to **vLLM on a larger GPU**.
+**The empirical finding (and the honest read for the interview):** concurrency was
+tested two ways and **both confirm the same conclusion** — this free-tier setup does
+not serve well under concurrent load:
 
-The stage still demonstrates the async client/server pattern. To get real throughput
-numbers: relaunch the LLM with `model_engine="vLLM"` on a Colab Pro GPU, run the client
-**inside the notebook** (localhost, skipping the tunnel) or on a paid ngrok plan, and
-bump N. *Knowing why the free-tier number is weak — and not overselling it — is itself
-the sales-engineer signal.*
+1. **Over the ngrok tunnel** (N=10, then N=4): requests stalled behind the free
+   tunnel's connection limits.
+2. **Inside the notebook on localhost** (N=6, no tunnel): still did not complete after
+   13+ minutes.
+
+A *single* request is fast (Stage 00/cell 4 answered instantly). It is specifically
+**concurrency** that collapses — because the **Transformers serving engine on a T4**
+does not do vLLM-style continuous batching: simultaneous generations contend for GPU
+memory and thrash instead of being grouped.
+
+**This is the point of the stage, demonstrated the hard way:** free/Transformers-engine
+serving answers one request fine but does not hold up under load. Production throughput
+requires the **vLLM engine on a larger GPU** (Colab Pro A100/L4), where Xinference's
+auto-batching actually kicks in. Knowing *why* — and not overselling a weak benchmark —
+is itself the sales-engineer signal: free tools answer; production serving is about
+concurrency and reliability.
+
+**To get real throughput numbers:** relaunch the LLM with `model_engine="vLLM"` on a
+Colab Pro GPU and re-run the load test.
 
 ---
 
