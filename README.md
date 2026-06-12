@@ -1,5 +1,11 @@
 # Xinference Sales Assistant
 
+> **In one breath:** a small AI assistant that answers questions from a set of docs and
+> can call functions (e.g. look up pricing, book a demo). The AI models run on a **free
+> cloud GPU** (Google Colab); this repo is the lightweight code on your laptop that
+> talks to them over a standard API. **Status: works end-to-end** — see
+> [`docs/demo-run.md`](docs/demo-run.md) for a real captured run.
+
 A hands-on learning project: a RAG + tool-calling agent served entirely on
 **Xinference**, built to learn the platform end-to-end (and double as technical-
 homework practice for an AI Technical Sales Engineer role).
