@@ -1,0 +1,6 @@
+openai>=1.30
+python-dotenv>=1.0
+numpy>=1.24
+requests>=2.31
+# optional, only for the tunnel in Phase 3 (used in Colab, not strictly local):
+# pyngrok>=7.0
